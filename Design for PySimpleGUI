@@ -1,0 +1,156 @@
+#libraries being used
+import PySimpleGUI as sg
+import math
+import sys
+
+#defines combinatoric calculation
+def combs(top,bottom):
+    return (math.factorial(top)/(math.factorial(top - bottom)*math.factorial(bottom)))
+
+#This gives it calculator functionality
+def stringreader(thing):
+    collector = ""
+    adder = []
+    count = 0
+    numbers = "1234567890"
+    for chara in thing:
+        if chara in numbers:
+            collector += chara
+        if chara =="+":
+            #print(collector)
+            adder.append(int(collector))
+            collector = ""
+    adder.append(int(collector))
+    #print(adder)
+
+    for ints in adder:
+        count+=ints
+    return count
+########################
+def parenCounter(string): #Checks if the number of left and right parentheses is legal
+    Left = 0
+    Right = 0
+    for char in string:
+        if char == "(":
+            Left+=1
+        if char == ")":
+            Right+=1
+    return (Left == Right)
+##########################
+def emptyParen(string): #Checks to see if there is any empty parenthesis
+    if "()" in string:
+        return False
+    else:
+        return True
+##########################
+def parenOrder(string): #Checks Order of Parentheses
+    leftTest = 0
+    if string[0] == ")":
+        return False
+    for char in range(0,len(string)):
+        if string[char]==")":
+            for checks in range(0,char+1):
+                if string[checks]=="(":
+                    leftTest+=1
+                if string[checks]==")":
+                    leftTest-=1
+                if leftTest < 0:
+                    return False
+    return True
+#########################
+def syntaxChecker(string): #Checks other edge cases which are illegal syntax for a Calculator
+    for char in range(0,len(string)):
+        if string[char] == "(":
+            if string[char+1] not in "0123456789(":
+                return False
+        if string[char] == ")" and char < len(string)-1:
+            if string[char+1] in "0123456789(":
+                #print(string[char+1])
+                return False
+            #print(string[char+1])
+    return True
+########################
+sg.theme('Purple')
+input = ""
+# format = [[sg.Text(input)],[sg.Button("1")],[sg.Button("2")],[sg.Button("3")],[sg.Button("4")],[sg.Button("5")],[sg.Button("6")],[sg.Button("7")],[sg.Button("8")],[sg.Button("9")],[sg.Button("+")],[sg.Button("=")]]
+# firstDraft = sg.Window("Combinatoric Calculator",format, margins = (400,100))
+
+def Input_Screen():
+    format = [[sg.Text(k = 'IN', size = (50,1), enable_events = True)],# [sg.Text(' ', enable_events = True)], [sg.Text(size=(20,1),  k='-OUTPUT-')],
+    [sg.Button("Clear"),sg.Button("Backspace")],
+    [sg.Button("1", size = (5,1)), sg.Button("2", size = (5,1)), sg.Button("3", size = (5,1))],
+    [sg.Button("4", size = (5,1)), sg.Button("5", size = (5,1)), sg.Button("6", size = (5,1)), sg.Button(".", size = (5,1))],
+    [sg.Button("7", size = (5,1)), sg.Button("8", size = (5,1)), sg.Button("9", size = (5,1)), sg.Button("0", size = (5,1))],
+    [sg.Button("+"),sg.Button("-"),sg.Button("*"),sg.Button("/"),sg.Button("("),sg.Button(")"),sg.Button("="),sg.Button("Exit")]]
+
+    firstDraft = sg.Window("Combinatoric Calculator",format, margins = (20,10), finalize = True)
+
+    return firstDraft
+def Output_Screen():
+    format = [[sg.Text(k = 'IN', size = (50,1), enable_events = True)], [sg.Text(k = input, size = (50,1), enable_events = True)],[sg.Button("Back")]]
+
+    outDraft = sg.Window("Answer",format, margins = (10,10), finalize = True)
+    return outDraft
+
+Screen = Input_Screen()
+Answer = None
+
+while True:
+    window, event, values = sg.read_all_windows()
+
+    if Screen == window and event != "=" and event != "Backspace":
+        window['IN'].update(input + event)
+        input = input + event
+        print(input)
+    if window == Screen and event == "=" and input != "":
+        test = True
+        for char in range(0,len(input)):
+            if input[char] not in "1234567890()":
+                if char-1 < 0 or char+1 >= len(input):
+                    test = False
+                    window['IN'].update("Invalid Input")
+            if parenCounter(input) == False:
+                test = False
+                window['IN'].update("Invalid Input")
+            if emptyParen(input) == False:
+                test = False
+                window['IN'].update("Invalid Input")
+            if parenOrder(input) == False:
+                test = False
+                window['IN'].update("Invalid Input")
+            if syntaxChecker(input) == False:
+                test = False
+                window['IN'].update("Invalid Input")        #Note to Self:
+
+                # print(input[char-1])
+                # print(input[char+1])
+
+        if test == True:
+            window['IN'].update(eval(input))
+        input = ""
+
+    if window == Screen and event == "Clear":
+        input = ""
+        window['IN'].update(input)
+    if window == Screen and event == "Backspace":
+        #input = input[:-1]
+        input = input[0:len(input)-1]
+        window['IN'].update(input)
+        #input = stringreader(input)
+        # Screen.hide()   #Remember these for Functionality
+        # Answer = Output_Screen()
+    if window == Screen and event in (sg.WIN_CLOSED,"Exit"):
+        break
+    if window == Answer and event == "Back":
+        Answer.close()
+        Screen.un_hide()
+        window['IN'].update(input)
+
+    # if window == Screen and event == "=":
+    #     Screen.hide()
+        #Answer = Output_Screen()
+
+
+    # if Screen == window:
+    #     window['IN'].update(input + event)
+    #     input = input + event
